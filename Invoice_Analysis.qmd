@@ -1,0 +1,137 @@
+---
+title: "车队账单分析报告"
+date: "2025-02-14"
+format: dashboard
+editor: visual
+---
+
+```{r 载入数据，并设置统计时间段}
+#| echo: false
+#| output: false
+# 载入数据
+source("D:/oilcar/Invoice_dashboard/R/invoice.R", echo=TRUE)
+
+# 设置统计数据时间段 
+start_date <- ymd("2024-01-01") 
+end_date   <- ymd("2024-12-31")
+```
+
+```{r}
+#| output: false
+# 对Annual_Bill进行日期范围，统计款项合计----------------------------
+
+total_list <- Annual_Bill %>%
+  filter(
+    between(账单日期, start_date, end_date)
+  ) %>%
+  summarise(
+    # 计算车管服务费总额
+    车管服务费总额 = sum(车管服务费),
+    # 计算押金总额
+    押金总额 = sum(押金),
+    # 计算车险费总额
+    车险费总额 = sum(车险费),
+    # 计算代收付类总额
+    代收付类总额 = sum(代收付类),
+    # 计算所有费用的合计总额
+    合计总额 = sum(车管服务费, 押金, 车险费, 代收付类)
+  )
+
+# 定义一个函数，用于格式化并输出费用总额
+format_and_print <- function(amount, label) {
+  # 保留两位小数并格式化数字，添加千位分隔符
+  formatted_amount <- format(round(amount, 2), nsmall = 2, big.mark = ",")
+  # 输出格式化后的费用信息
+  cat(sprintf("%s：￥%s 元\n", label, formatted_amount))
+}
+
+# 输出各项费用总额
+format_and_print(total_list$车管服务费总额, "车管服务费总额")
+
+format_and_print(total_list$押金总额, "押金总额")
+
+format_and_print(total_list$车险费总额, "车险费总额")
+
+format_and_print(total_list$代收付类总额, "代收付类总额")
+
+format_and_print(total_list$合计总额, "合计总额")
+
+```
+
+```{r}
+# 对Annual_Bill进行日期范围和Invoice状态多条件筛选-------------------
+Filtered_Annual_Bill <- Annual_Bill %>%
+  filter(
+    between(账单日期, start_date, end_date),
+    Invoice状态 %in% c("Overdue", "PartiallyPaid")
+  )
+
+# 将应收款金额列转换为数值型
+Filtered_Annual_Bill$应收款金额 <- as.numeric(Filtered_Annual_Bill$应收款金额)
+
+# 结果验证 -----------------------------------------------------------
+total_receivables <- Filtered_Annual_Bill %>%
+      summarise(总应收款 = sum(应收款金额, na.rm = TRUE)) %>%
+      pull(总应收款)
+```
+
+## Column
+
+### Row {height="20%"}
+
+```{r}
+#| content: valuebox
+#| title: "车管服务费总额"
+list(
+  icon  = "bi-bag-dash",   
+  color = "secondary",
+  value = format(round(total_list$车管服务费总额, 2), nsmall = 2, big.mark = ",")
+)
+```
+
+### Row {height="20%"}
+
+```{r}
+#| content: valuebox
+#| title: "车险费总额"
+list(
+  icon  = "piggy-bank",
+  color = "primary",
+  value = format(round(total_list$车险费总额, 2), nsmall = 2, big.mark = ",")
+)
+```
+
+### Row {height="20%"}
+
+```{r}
+#| content: valuebox
+#| title: "代收付类总额"
+list(
+  icon  = "money-bill-transfer",
+  color = "primary",
+  value = format(round(total_list$代收付类总额, 2), nsmall = 2, big.mark = ",")
+)
+```
+
+### Row {height="20%"}
+
+```{r}
+#| content: valuebox
+#| title: "应收款余额"
+list(
+  icon  = "currency-yen",  # ￥  
+  color = "danger",
+  value = format(round(total_receivables, 2), nsmall = 2, big.mark = ",")
+)
+```
+
+## Row {height="80%"}
+
+```{r}
+library(leaflet)
+leaflet() %>%
+  addTiles() %>% 
+  addMarkers(lng=174.768, lat=-36.852, 
+             popup="The birthplace of R")
+
+```
