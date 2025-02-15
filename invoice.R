@@ -3,8 +3,8 @@ library(stringr)
 library(lubridate)  # 加载lubridate库以使用日期函数
 
 # 载入.csv文件 ----------------------------------------------------------------
-Shipping_Order_file_path   <- "D:/oilcar/Invoice_dashboard/data/发货单.csv"
-Customer_Payment_file_path <- "D:/oilcar/Invoice_dashboard/data/客户付款.csv"
+Shipping_Order_file_path   <- "D:/发货单.csv"
+Customer_Payment_file_path <- "D:/客户付款.csv"
 
 # 加载发货单数据
 Shipping_Order_data <- read_csv(Shipping_Order_file_path) %>%   
@@ -44,7 +44,7 @@ Annual_Bill <- Shipping_Order_data %>%
     客户名称 = as.character(客户名称)
   ) %>%
   # 过滤排除客户
-  filter(!str_detect(客户名称, "燃运车队|方祥利")) %>%
+  filter(!str_detect(客户名称, "123|456")) %>%
   # 列处理
   select(-any_of(c("分类", "描述", "总计", "所属类别", "开始日期", "结束日期"))) %>%
   # 数据重塑
@@ -95,7 +95,7 @@ write.csv(Annual_Bill, file = "D:/oilcar/Invoice_dashboard/data/Annual_Bill.csv"
 # Vehicle_Insurance <- Shipping_Order_data %>%
 #   filter(
 #     between(账单日期, start_date, end_date),
-#     !str_detect(客户名称, "燃运车队|方祥利"),
+#     !str_detect(客户名称, "123|456"),
 #     款项名称 %in% c("代收车船税", "交强险",  "商业险")
 #   ) %>%
 #   select(账单编号, Invoice状态, 账单日期, 客户名称, 款项名称, 款项金额) %>%
